@@ -30,7 +30,6 @@ func (s *Server) Start() {
 		Handler: s.router,
 	}
 
-	// Start server in a goroutine
 	go func() {
 		log.Printf("Server starting on port %s", s.port)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -38,13 +37,11 @@ func (s *Server) Start() {
 		}
 	}()
 
-	// Wait for interrupt signal to gracefully shutdown the server
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 	log.Println("Shutting down server...")
 
-	// Give outstanding requests a timeout to complete
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -55,7 +52,6 @@ func (s *Server) Start() {
 	log.Println("Server exited")
 }
 
-// GetPort returns the server port (useful for testing)
 func (s *Server) GetPort() string {
 	return s.port
 }

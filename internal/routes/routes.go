@@ -2,20 +2,21 @@ package routes
 
 import (
 	"play-together/config"
-	"play-together/internal/handler"
+	"play-together/internal/service"
 
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter(firebaseClient *config.FirebaseClient) *gin.Engine {
-	router := gin.Default()
+func SetupRouter(
+	firebaseClient *config.FirebaseClient, loginService *service.LoginService, healthService *service.HealthService,
+) *gin.Engine {
 
-	// Initialize handlers
-	healthHandler := handler.NewHealthHandler()
+	router := gin.Default()
 
 	public := router.Group("/api/v1")
 	{
-		public.GET("/health", healthHandler.HealthCheck)
+		public.GET("/health", healthService.HealthCheck)
+		AddLoginRoutes(public, loginService)
 	}
 
 	return router

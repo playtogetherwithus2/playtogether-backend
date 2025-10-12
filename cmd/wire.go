@@ -5,9 +5,13 @@ package main
 
 import (
 	"play-together/config"
+	"play-together/internal/handler"
+	"play-together/internal/repository"
 	"play-together/internal/routes"
 	"play-together/internal/server"
+	"play-together/internal/service"
 
+	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
 )
 
@@ -15,8 +19,14 @@ func InitializeServer() (*server.Server, error) {
 	wire.Build(
 		config.LoadConfig,
 		config.NewFirebaseClient,
-		// handler.NewHealthHandler,
-		routes.SetupRouter,
+
+		repository.NewLoginRepository,
+		handler.NewLoginHandler,
+		service.NewLoginService,
+
+		service.NewHealthService,
+
+		provideRouter,
 		providePortFromConfig,
 		server.NewServer,
 	)
@@ -25,4 +35,12 @@ func InitializeServer() (*server.Server, error) {
 
 func providePortFromConfig(cfg *config.Config) string {
 	return cfg.Port
+}
+
+func provideRouter(
+	firebaseClient *config.FirebaseClient,
+	loginService *service.LoginService,
+	healthService *service.HealthService,
+) *gin.Engine {
+	return routes.SetupRouter(firebaseClient, loginService, healthService)
 }

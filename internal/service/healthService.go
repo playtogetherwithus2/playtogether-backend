@@ -1,4 +1,4 @@
-package handler
+package service
 
 import (
 	"net/http"
@@ -6,10 +6,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type HealthHandler struct{}
+type HealthService struct{}
 
-func NewHealthHandler() *HealthHandler {
-	return &HealthHandler{}
+func NewHealthService() *HealthService {
+	return &HealthService{}
 }
 
 type HealthResponse struct {
@@ -17,7 +17,7 @@ type HealthResponse struct {
 	Message string `json:"message"`
 }
 
-func (h *HealthHandler) HealthCheck(c *gin.Context) {
+func (s *HealthService) HealthCheck(c *gin.Context) {
 	response := HealthResponse{
 		Status:  "success",
 		Message: "Service is running smoothly",
