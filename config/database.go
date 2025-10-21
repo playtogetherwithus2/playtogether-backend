@@ -5,13 +5,15 @@ import (
 	"log"
 	"os"
 
+	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
 	"google.golang.org/api/option"
 )
 
 type FirebaseClient struct {
-	Auth *auth.Client
+	Auth      *auth.Client
+	Firestore *firestore.Client
 }
 
 func NewFirebaseClient(config *Config) (*FirebaseClient, error) {
@@ -37,8 +39,15 @@ func NewFirebaseClient(config *Config) (*FirebaseClient, error) {
 		return nil, err
 	}
 
+	firestoreClient, err := app.Firestore(ctx)
+	if err != nil {
+		log.Printf("Error initializing Firestore: %v\n", err)
+		return nil, err
+	}
+
 	log.Println("Firebase connection established successfully")
 	return &FirebaseClient{
-		Auth: authClient,
+		Auth:      authClient,
+		Firestore: firestoreClient,
 	}, nil
 }
