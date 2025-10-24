@@ -16,7 +16,7 @@ func NewPostService(handler *handler.PostHandler) *PostService {
 }
 
 func (s *PostService) CreatePost(ctx context.Context, post *model.GamePost) (string, error) {
-	if post.Name == "" || post.Venue == "" {
+	if post.Name == "" || post.Venue == "" || post.BackendUserId == "" {
 		return "", errors.New("name and venue are required")
 	}
 	return s.handler.HandleCreatePost(ctx, post)

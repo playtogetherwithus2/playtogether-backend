@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"time"
 	"errors"
 	"play-together/config"
 	"play-together/internal/model"
@@ -23,6 +24,7 @@ func NewPostRepository(firebaseClient *config.FirebaseClient) PostRepository {
 
 func (r *postRepository) CreatePost(ctx context.Context, post *model.GamePost) (string, error) {
 	client := r.firebaseClient.Firestore
+	post.CreatedAt = time.Now()
 	docRef, _, err := client.Collection("game_posts").Add(ctx, post)
 	if err != nil {
 		return "", errors.New("failed to create post: " + err.Error())

@@ -2,7 +2,9 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"errors"
+	"time"
 	"play-together/config"
 
 	"firebase.google.com/go/auth"
@@ -41,5 +43,22 @@ func (r *loginRepository) SignupWithEmailAndPassword(ctx context.Context, email,
 	if err != nil {
 		return nil, err
 	}
+	fsClient := r.firebaseClient.Firestore
+	if fsClient == nil {
+		return nil, fmt.Errorf("firestore client is not initialized")
+	}
+
+	userData := map[string]interface{}{
+		"email":     email,
+		"password":  password,
+		"uid":       user.UID,
+		"createdAt": time.Now(),
+	}
+
+	_, err = fsClient.Collection("users").Doc(user.UID).Set(ctx, userData)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create Firestore user record: %w", err)
+	}
+
 	return user, nil
 }

@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 type GamePost struct {
 	ID              string `json:"id,omitempty"`
 	Name            string `json:"name" binding:"required"`
@@ -10,5 +12,6 @@ type GamePost struct {
 	Fee             string `json:"fee,omitempty"`
 	About           string `json:"about,omitempty"`
 	SkillLevel      string `json:"skill_level,omitempty"`
-	BackendUserName string `json:"backend_user_name" binding:"required"`
+	BackendUserId   string `json:"backend_user_id" binding:"required"`
+	CreatedAt       time.Time `json:"createdAt" firestore:"createdAt"`
 }
