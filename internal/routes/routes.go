@@ -8,7 +8,12 @@ import (
 )
 
 func SetupRouter(
-	firebaseClient *config.FirebaseClient, loginService *service.LoginService, healthService *service.HealthService, postService *service.PostService, 
+	firebaseClient *config.FirebaseClient,
+	loginService *service.LoginService,
+	healthService *service.HealthService,
+	postService *service.PostService,
+	chatService *service.ChatService,
+
 ) *gin.Engine {
 
 	router := gin.Default()
@@ -18,6 +23,7 @@ func SetupRouter(
 		public.GET("/health", healthService.HealthCheck)
 		AddLoginRoutes(public, loginService)
 		AddPostRoutes(public, postService)
+		AddChatRoutes(public, chatService)
 	}
 
 	return router
