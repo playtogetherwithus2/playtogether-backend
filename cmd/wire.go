@@ -33,7 +33,11 @@ func InitializeServer() (*server.Server, error) {
 		repository.NewChatRepository,
 		handler.NewChatHandler,
 		service.NewChatService,
-
+		
+		repository.NewRequestRepository,
+		handler.NewRequestHandler,
+		service.NewRequestHandler
+		
 		provideRouter,
 		providePortFromConfig,
 		server.NewServer,

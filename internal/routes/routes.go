@@ -13,6 +13,7 @@ func SetupRouter(
 	healthService *service.HealthService,
 	postService *service.PostService,
 	chatService *service.ChatService,
+	requestService *service.RequestService,
 
 ) *gin.Engine {
 
@@ -24,6 +25,7 @@ func SetupRouter(
 		AddLoginRoutes(public, loginService)
 		AddPostRoutes(public, postService)
 		AddChatRoutes(public, chatService)
+		AddRequestRoutes(public, requestService)
 	}
 
 	return router
