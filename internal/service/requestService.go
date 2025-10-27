@@ -22,8 +22,8 @@ func (s *RequestService) CreateRequest(ctx context.Context, req model.Request) (
 	return s.handler.CreateRequest(ctx, req)
 }
 
-func (s *RequestService) GetAllRequests(ctx context.Context) ([]*model.Request, error) {
-	return s.handler.HandleGetAllRequests(ctx)
+func (s *RequestService) GetAllRequests(ctx context.Context, senderID, receiverID string) ([]*model.Request, error) {
+	return s.handler.HandleGetAllRequests(ctx, senderID, receiverID)
 }
 
 func (s *RequestService) GetRequestByID(ctx context.Context, id string) (*model.Request, error) {

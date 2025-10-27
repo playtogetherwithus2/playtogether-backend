@@ -18,8 +18,8 @@ func (h *RequestHandler) CreateRequest(ctx context.Context, req model.Request) (
 	return h.repo.CreateRequest(ctx, req)
 }
 
-func (h *RequestHandler) HandleGetAllRequests(ctx context.Context) ([]*model.Request, error) {
-	return h.repo.GetAllRequests(ctx)
+func (h *RequestHandler) HandleGetAllRequests(ctx context.Context, senderID, receiverID string) ([]*model.Request, error) {
+	return h.repo.GetAllRequests(ctx, senderID, receiverID)
 }
 
 func (h *RequestHandler) HandleGetRequestByID(ctx context.Context, id string) (*model.Request, error) {

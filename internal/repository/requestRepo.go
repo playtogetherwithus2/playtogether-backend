@@ -8,11 +8,13 @@ import (
 
 	"play-together/config"
 	"play-together/internal/model"
+
+	"cloud.google.com/go/firestore"
 )
 
 type RequestRepository interface {
 	CreateRequest(ctx context.Context, req model.Request) (string, error)
-	GetAllRequests(ctx context.Context) ([]*model.Request, error)
+	GetAllRequests(ctx context.Context, sendersID, receiversID string) ([]*model.Request, error)
 	GetRequestByID(ctx context.Context, id string) (*model.Request, error)
 }
 
@@ -42,11 +44,21 @@ func (r *requestRepository) CreateRequest(ctx context.Context, req model.Request
 	return docRef.ID, nil
 }
 
-func (r *requestRepository) GetAllRequests(ctx context.Context) ([]*model.Request, error) {
+func (r *requestRepository) GetAllRequests(ctx context.Context, senderID, receiverID string) ([]*model.Request, error) {
 	client := r.firebaseClient.Firestore
-	iter := client.Collection("requests").Documents(ctx)
+
+	var iter *firestore.DocumentIterator
+
+	if senderID != "" {
+		iter = client.Collection("requests").Where("senders_id", "==", senderID).Documents(ctx)
+	} else if receiverID != "" {
+		iter = client.Collection("requests").Where("receivers_id", "==", receiverID).Documents(ctx)
+	} else {
+		iter = client.Collection("requests").Documents(ctx)
+	}
 
 	var requests []*model.Request
+
 	for {
 		doc, err := iter.Next()
 		if err != nil {
@@ -58,6 +70,7 @@ func (r *requestRepository) GetAllRequests(ctx context.Context) ([]*model.Reques
 			requests = append(requests, &request)
 		}
 	}
+
 	return requests, nil
 }
 

@@ -34,9 +34,12 @@ func createRequestHandler(requestService *service.RequestService) gin.HandlerFun
 
 func getAllRequestsHandler(requestService *service.RequestService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		requests, err := requestService.GetAllRequests(c.Request.Context())
+		senderID := c.Query("senders_id")
+		receiverID := c.Query("receivers_id")
+
+		requests, err := requestService.GetAllRequests(c.Request.Context(), senderID, receiverID)
 		if err != nil {
-			c.JSON(500, gin.H{"error": "Failed to fetch posts", "details": err.Error()})
+			c.JSON(500, gin.H{"error": "Failed to fetch requests", "details": err.Error()})
 			return
 		}
 		c.JSON(200, gin.H{"requests": requests})
