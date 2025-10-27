@@ -9,6 +9,7 @@ import (
 	"play-together/internal/model"
 
 	"cloud.google.com/go/firestore"
+	"google.golang.org/api/iterator"
 )
 
 type ChatRepository interface {
@@ -18,6 +19,7 @@ type ChatRepository interface {
 	AddMember(ctx context.Context, groupID string, req model.ModifyMemberRequest) error
 	RemoveMember(ctx context.Context, groupID string, req model.ModifyMemberRequest) error
 	GetGroupDetails(ctx context.Context, groupID string) (model.GroupDetails, error)
+	GetAllGroups(ctx context.Context, memberID string) ([]*model.GroupDetails, error)
 }
 
 type chatRepository struct {
@@ -31,19 +33,59 @@ func NewChatRepository(firebaseClient *config.FirebaseClient) ChatRepository {
 func (r *chatRepository) CreateGroup(ctx context.Context, req model.CreateGroupRequest) (string, error) {
 	fs := r.firebaseClient.Firestore
 
-	docRef := fs.Collection("groups").NewDoc()
-	groupData := model.CreateGroupRequest{
-		GroupName: req.GroupName,
-		CreatedBy: "lkAIJVjXppZJNB15AEy7sRblgg23",
-		Members:   req.Members,
-		CreatedAt: time.Now(),
+	// Ensure Members is initialized (avoid nil Firestore field)
+	if req.Members == nil {
+		req.Members = []string{}
 	}
 
-	_, err := docRef.Set(ctx, groupData)
+	// Always set CreatedAt from server-side for consistency
+	req.CreatedAt = time.Now()
+
+	docRef := fs.Collection("groups").NewDoc()
+
+	_, err := docRef.Set(ctx, map[string]interface{}{
+		"group_name": req.GroupName,
+		"created_by": req.CreatedBy,
+		"match_id":   req.MatchId,
+		"members":    req.Members,
+		"created_at": req.CreatedAt,
+	})
 	if err != nil {
 		return "", fmt.Errorf("failed to create group: %w", err)
 	}
+
 	return docRef.ID, nil
+}
+
+func (r *chatRepository) GetAllGroups(ctx context.Context, memberID string) ([]*model.GroupDetails, error) {
+	client := r.firebaseClient.Firestore
+	var iter *firestore.DocumentIterator
+
+	if memberID != "" {
+		iter = client.Collection("groups").Where("members", "array-contains", memberID).Documents(ctx)
+	} else {
+		iter = client.Collection("groups").Documents(ctx)
+	}
+
+	groups := make([]*model.GroupDetails, 0)
+
+	for {
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+
+		var group model.GroupDetails
+		if err := doc.DataTo(&group); err == nil {
+			group.ID = doc.Ref.ID
+			groups = append(groups, &group)
+		}
+	}
+
+	return groups, nil
 }
 
 func (r *chatRepository) GetMessages(ctx context.Context, groupID string) ([]model.Message, error) {

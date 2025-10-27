@@ -16,10 +16,14 @@ func NewChatService(handler *handler.ChatHandler) *ChatService {
 }
 
 func (s *ChatService) CreateGroup(ctx context.Context, req model.CreateGroupRequest) (string, error) {
-	if req.GroupName == "" || len(req.Members) == 0 {
-		return "", errors.New("group name and members are required")
+	if req.GroupName == "" || len(req.Members) == 0 || req.MatchId == "" {
+		return "", errors.New("all fields are required")
 	}
 	return s.handler.CreateGroup(ctx, req)
+}
+
+func (s *ChatService) GetAllGroups(ctx context.Context, memberID string) ([]*model.GroupDetails, error) {
+	return s.handler.GetAllGroups(ctx, memberID)
 }
 
 func (s *ChatService) GetMessages(ctx context.Context, groupID string) ([]model.Message, error) {

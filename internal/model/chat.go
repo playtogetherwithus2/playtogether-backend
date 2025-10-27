@@ -3,10 +3,11 @@ package model
 import "time"
 
 type CreateGroupRequest struct {
-	GroupName string    `json:"group_name"`
-	CreatedBy string    `json:"created_by"`
-	Members   []string  `json:"members"`
-	CreatedAt time.Time `json:"created_at"`
+	MatchId   string    `json:"match_id" firestore:"match_id"`
+	GroupName string    `json:"group_name" firestore:"group_name"`
+	CreatedBy string    `json:"created_by" firestore:"created_by"`
+	Members   []string  `json:"members" firestore:"members"`
+	CreatedAt time.Time `json:"created_at" firestore:"created_at"`
 }
 
 type SendMessageRequest struct {

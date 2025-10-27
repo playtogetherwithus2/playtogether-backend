@@ -18,6 +18,10 @@ func (h *ChatHandler) CreateGroup(ctx context.Context, req model.CreateGroupRequ
 	return h.repo.CreateGroup(ctx, req)
 }
 
+func (h *ChatHandler) GetAllGroups(ctx context.Context, memberID string) ([]*model.GroupDetails, error) {
+	return h.repo.GetAllGroups(ctx, memberID)
+}
+
 func (h *ChatHandler) GetMessages(ctx context.Context, groupID string) ([]model.Message, error) {
 	return h.repo.GetMessages(ctx, groupID)
 }

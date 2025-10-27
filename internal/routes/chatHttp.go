@@ -10,11 +10,32 @@ import (
 
 func AddChatRoutes(router *gin.RouterGroup, chatService *service.ChatService) {
 	router.POST("/groups", createGroupHandler(chatService))
+	router.GET("/groups", getAllGroupsHandler(chatService))
 	router.GET("/groups/:groupId/messages", getMessagesHandler(chatService))
 	router.POST("/groups/:groupId/messages", sendMessageHandler(chatService))
 	router.POST("/group/:id/add", addMemberHandler(chatService))
 	router.POST("/group/:id/remove", removeMemberHandler(chatService))
 	router.GET("/group/:id/details", getGroupDetailsHandler(chatService))
+}
+
+func getAllGroupsHandler(chatService *service.ChatService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.Request.Context()
+		memberID := c.Query("member_id")
+
+		groups, err := chatService.GetAllGroups(ctx, memberID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error":   "Failed to fetch groups",
+				"details": err.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"groups": groups,
+		})
+	}
 }
 
 func createGroupHandler(chatService *service.ChatService) gin.HandlerFunc {
