@@ -17,6 +17,7 @@ type ChatRepository interface {
 	GetMessages(ctx context.Context, groupID string) ([]model.Message, error)
 	SendMessage(ctx context.Context, groupID string, req model.SendMessageRequest) error
 	AddMember(ctx context.Context, groupID string, req model.ModifyMemberRequest) error
+	AddMemberByMatchID(ctx context.Context, matchID string, req model.ModifyMemberRequest) error
 	RemoveMember(ctx context.Context, groupID string, req model.ModifyMemberRequest) error
 	GetGroupDetails(ctx context.Context, groupID string) (model.GroupDetails, error)
 	GetAllGroups(ctx context.Context, memberID string) ([]*model.GroupDetails, error)
@@ -127,10 +128,36 @@ func (r *chatRepository) AddMember(ctx context.Context, groupID string, req mode
 	docRef := fs.Collection("groups").Doc(groupID)
 
 	_, err := docRef.Update(ctx, []firestore.Update{
-		{Path: "Members", Value: firestore.ArrayUnion(req.UserID)},
+		{Path: "members", Value: firestore.ArrayUnion(req.UserID)},
 	})
 	if err != nil {
 		return fmt.Errorf("failed to add member: %w", err)
+	}
+	return nil
+}
+
+func (r *chatRepository) AddMemberByMatchID(ctx context.Context, matchID string, req model.ModifyMemberRequest) error {
+	fs := r.firebaseClient.Firestore
+	iter := fs.Collection("groups").Where("match_id", "==", matchID).Documents(ctx)
+	batch := fs.Batch()
+
+	for {
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return fmt.Errorf("error fetching groups: %w", err)
+		}
+
+		batch.Update(doc.Ref, []firestore.Update{
+			{Path: "members", Value: firestore.ArrayUnion(req.UserID)},
+		})
+	}
+
+	_, err := batch.Commit(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to add member to groups: %w", err)
 	}
 	return nil
 }

@@ -34,6 +34,10 @@ func (h *ChatHandler) AddMember(ctx context.Context, groupID string, req model.M
 	return h.repo.AddMember(ctx, groupID, req)
 }
 
+func (h *ChatHandler) AddMemberByMatchID(ctx context.Context, matchID string, req model.ModifyMemberRequest) error {
+	return h.repo.AddMemberByMatchID(ctx, matchID, req)
+}
+
 func (h *ChatHandler) RemoveMember(ctx context.Context, groupID string, req model.ModifyMemberRequest) error {
 	return h.repo.RemoveMember(ctx, groupID, req)
 }

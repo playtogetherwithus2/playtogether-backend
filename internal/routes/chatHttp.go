@@ -13,7 +13,7 @@ func AddChatRoutes(router *gin.RouterGroup, chatService *service.ChatService) {
 	router.GET("/groups", getAllGroupsHandler(chatService))
 	router.GET("/groups/:groupId/messages", getMessagesHandler(chatService))
 	router.POST("/groups/:groupId/messages", sendMessageHandler(chatService))
-	router.POST("/group/:id/add", addMemberHandler(chatService))
+	router.POST("/groups/add-member", addMemberHandler(chatService))
 	router.POST("/group/:id/remove", removeMemberHandler(chatService))
 	router.GET("/group/:id/details", getGroupDetailsHandler(chatService))
 }
@@ -92,15 +92,29 @@ func sendMessageHandler(chatService *service.ChatService) gin.HandlerFunc {
 
 func addMemberHandler(chatService *service.ChatService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		groupID := c.Param("id")
-		var req model.ModifyMemberRequest
+		groupID := c.Query("group_id")
+		matchID := c.Query("match_id")
 
+		var req model.ModifyMemberRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
+		if groupID == "" && matchID == "" {
+			c.JSON(400, gin.H{"error": "either group_id or match_id query parameter is required"})
+			return
+		}
 
-		if err := chatService.AddMember(c.Request.Context(), groupID, req); err != nil {
+		ctx := c.Request.Context()
+		var err error
+
+		if groupID != "" {
+			err = chatService.AddMember(ctx, groupID, req)
+		} else {
+			err = chatService.AddMemberByMatchID(ctx, matchID, req)
+		}
+
+		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}

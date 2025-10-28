@@ -44,6 +44,13 @@ func (s *ChatService) AddMember(ctx context.Context, groupID string, req model.M
 	return s.handler.AddMember(ctx, groupID, req)
 }
 
+func (s *ChatService) AddMemberByMatchID(ctx context.Context, matchID string, req model.ModifyMemberRequest) error {
+	if req.UserID == "" {
+		return errors.New("user_id is required")
+	}
+	return s.handler.AddMemberByMatchID(ctx, matchID, req)
+}
+
 func (s *ChatService) RemoveMember(ctx context.Context, groupID string, req model.ModifyMemberRequest) error {
 	if req.UserID == "" {
 		return errors.New("user_id is required")
