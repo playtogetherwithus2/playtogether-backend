@@ -13,8 +13,8 @@ func AddChatRoutes(router *gin.RouterGroup, chatService *service.ChatService) {
 	router.GET("/groups", getAllGroupsHandler(chatService))
 	router.GET("/groups/:groupId/messages", getMessagesHandler(chatService))
 	router.POST("/groups/:groupId/messages", sendMessageHandler(chatService))
-	router.POST("/groups/add-member", addMemberHandler(chatService))
-	router.POST("/group/:id/remove", removeMemberHandler(chatService))
+	router.POST("/group/add-member", addMemberHandler(chatService))
+	router.POST("/group/remove-member", removeMemberHandler(chatService))
 	router.GET("/group/:id/details", getGroupDetailsHandler(chatService))
 }
 
@@ -125,7 +125,7 @@ func addMemberHandler(chatService *service.ChatService) gin.HandlerFunc {
 
 func removeMemberHandler(chatService *service.ChatService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		groupID := c.Param("id")
+		groupID := c.Query("group_id")
 		var req model.ModifyMemberRequest
 
 		if err := c.ShouldBindJSON(&req); err != nil {

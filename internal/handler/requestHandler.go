@@ -25,3 +25,7 @@ func (h *RequestHandler) HandleGetAllRequests(ctx context.Context, senderID, rec
 func (h *RequestHandler) HandleGetRequestByID(ctx context.Context, id string) (*model.Request, error) {
 	return h.repo.GetRequestByID(ctx, id)
 }
+
+func (h *RequestHandler) HandleDeleteRequestByID(ctx context.Context, id string) error {
+	return h.repo.DeleteRequestByID(ctx, id)
+}

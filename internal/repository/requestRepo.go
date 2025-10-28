@@ -16,6 +16,7 @@ type RequestRepository interface {
 	CreateRequest(ctx context.Context, req model.Request) (string, error)
 	GetAllRequests(ctx context.Context, sendersID, receiversID string) ([]*model.Request, error)
 	GetRequestByID(ctx context.Context, id string) (*model.Request, error)
+	DeleteRequestByID(ctx context.Context, id string) error
 }
 
 type requestRepository struct {
@@ -89,4 +90,20 @@ func (r *requestRepository) GetRequestByID(ctx context.Context, id string) (*mod
 
 	request.ID = doc.Ref.ID
 	return &request, nil
+}
+
+func (r *requestRepository) DeleteRequestByID(ctx context.Context, id string) error {
+	client := r.firebaseClient.Firestore
+
+	_, err := client.Collection("requests").Doc(id).Get(ctx)
+	if err != nil {
+		return errors.New("request not found: " + err.Error())
+	}
+
+	_, err = client.Collection("requests").Doc(id).Delete(ctx)
+	if err != nil {
+		return errors.New("failed to delete request: " + err.Error())
+	}
+
+	return nil
 }

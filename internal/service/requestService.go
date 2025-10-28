@@ -32,3 +32,10 @@ func (s *RequestService) GetRequestByID(ctx context.Context, id string) (*model.
 	}
 	return s.handler.HandleGetRequestByID(ctx, id)
 }
+
+func (s *RequestService) DeleteRequestByID(ctx context.Context, id string) error {
+	if id == "" {
+		return errors.New("request ID is required")
+	}
+	return s.handler.HandleDeleteRequestByID(ctx, id)
+}

@@ -12,6 +12,7 @@ func AddRequestRoutes(router *gin.RouterGroup, requestService *service.RequestSe
 	router.POST("/request", createRequestHandler(requestService))
 	router.GET("/request", getAllRequestsHandler(requestService))
 	router.GET("/request/:id", getRequestByIDHandler(requestService))
+	router.DELETE("/request/:id", deleteRequestByIDHandler(requestService))
 }
 
 func createRequestHandler(requestService *service.RequestService) gin.HandlerFunc {
@@ -61,6 +62,25 @@ func getRequestByIDHandler(requestService *service.RequestService) gin.HandlerFu
 
 		c.JSON(200, gin.H{
 			"request": request,
+		})
+	}
+}
+
+func deleteRequestByIDHandler(requestService *service.RequestService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+
+		if err := requestService.DeleteRequestByID(c.Request.Context(), id); err != nil {
+			c.JSON(404, gin.H{
+				"error":   "Failed to delete request",
+				"details": err.Error(),
+			})
+			return
+		}
+
+		c.JSON(200, gin.H{
+			"message": "Request deleted successfully",
+			"id":      id,
 		})
 	}
 }

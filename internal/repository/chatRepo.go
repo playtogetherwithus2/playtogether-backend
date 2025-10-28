@@ -167,7 +167,7 @@ func (r *chatRepository) RemoveMember(ctx context.Context, groupID string, req m
 	docRef := fs.Collection("groups").Doc(groupID)
 
 	_, err := docRef.Update(ctx, []firestore.Update{
-		{Path: "Members", Value: firestore.ArrayRemove(req.UserID)},
+		{Path: "members", Value: firestore.ArrayRemove(req.UserID)},
 	})
 	if err != nil {
 		return fmt.Errorf("failed to remove member: %w", err)
