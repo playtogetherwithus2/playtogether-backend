@@ -2,10 +2,10 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	"errors"
-	"time"
+	"fmt"
 	"play-together/config"
+	"time"
 
 	"firebase.google.com/go/auth"
 )
@@ -51,7 +51,7 @@ func (r *loginRepository) SignupWithEmailAndPassword(ctx context.Context, email,
 	userData := map[string]interface{}{
 		"email":     email,
 		"password":  password,
-		"uid":       user.UID,
+		"id":        user.UID,
 		"createdAt": time.Now(),
 	}
 

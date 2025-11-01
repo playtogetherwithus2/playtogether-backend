@@ -7,14 +7,13 @@
 package main
 
 import (
+	"github.com/gin-gonic/gin"
 	"play-together/config"
 	"play-together/internal/handler"
 	"play-together/internal/repository"
 	"play-together/internal/routes"
 	"play-together/internal/server"
 	"play-together/internal/service"
-
-	"github.com/gin-gonic/gin"
 )
 
 // Injectors from wire.go:
@@ -38,7 +37,10 @@ func InitializeServer() (*server.Server, error) {
 	requestRepository := repository.NewRequestRepository(firebaseClient)
 	requestHandler := handler.NewRequestHandler(requestRepository)
 	requestService := service.NewRequestService(requestHandler)
-	engine := provideRouter(firebaseClient, loginService, healthService, postService, chatService, requestService)
+	userRepository := repository.NewUserRepository(firebaseClient)
+	userHandler := handler.NewUserHandler(userRepository)
+	userService := service.NewUserService(userHandler)
+	engine := provideRouter(firebaseClient, loginService, healthService, postService, chatService, requestService, userService)
 	string2 := providePortFromConfig(configConfig)
 	serverServer := server.NewServer(engine, string2)
 	return serverServer, nil
@@ -57,7 +59,7 @@ func provideRouter(
 	postService *service.PostService,
 	chatService *service.ChatService,
 	requestService *service.RequestService,
-
+	userService *service.UserService,
 ) *gin.Engine {
-	return routes.SetupRouter(firebaseClient, loginService, healthService, postService, chatService, requestService)
+	return routes.SetupRouter(firebaseClient, loginService, healthService, postService, chatService, requestService, userService)
 }
