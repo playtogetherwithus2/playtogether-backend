@@ -36,8 +36,12 @@ func InitializeServer() (*server.Server, error) {
 		
 		repository.NewRequestRepository,
 		handler.NewRequestHandler,
-		service.NewRequestHandler
-		
+		service.NewRequestService,
+
+		repository.NewUserRepository,
+		handler.NewUserHandler,
+		service.NewUserService,
+
 		provideRouter,
 		providePortFromConfig,
 		server.NewServer,
@@ -55,6 +59,8 @@ func provideRouter(
 	healthService *service.HealthService,
 	postService *service.PostService,
 	chatService *service.ChatService,
+	requestService *service.RequestService,
+	userService *service.UserService,
 ) *gin.Engine {
-	return routes.SetupRouter(firebaseClient, loginService, healthService, postService, chatService)
+	return routes.SetupRouter(firebaseClient, loginService, healthService, postService, chatService, requestService, userService)
 }
