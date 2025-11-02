@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"play-together/internal/handler"
 	"play-together/internal/model"
 )
@@ -20,6 +21,25 @@ func (s *RequestService) CreateRequest(ctx context.Context, req model.Request) (
 		return "", errors.New("All details are required")
 	}
 	return s.handler.CreateRequest(ctx, req)
+}
+
+func (s *RequestService) UpdateRequest(ctx context.Context, id string, updateData map[string]interface{}) error {
+	if id == "" {
+		return errors.New("request ID is required")
+	}
+
+	// Optionally validate allowed fields to update
+	allowedFields := map[string]bool{
+		"status": true,
+	}
+
+	for key := range updateData {
+		if !allowedFields[key] {
+			return fmt.Errorf("updating field '%s' is not allowed", key)
+		}
+	}
+
+	return s.handler.UpdateRequest(ctx, id, updateData)
 }
 
 func (s *RequestService) GetAllRequests(ctx context.Context, senderID, receiverID string) ([]*model.Request, error) {

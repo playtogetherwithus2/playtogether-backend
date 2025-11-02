@@ -17,6 +17,9 @@ func NewRequestHandler(repo repository.RequestRepository) *RequestHandler {
 func (h *RequestHandler) CreateRequest(ctx context.Context, req model.Request) (string, error) {
 	return h.repo.CreateRequest(ctx, req)
 }
+func (h *RequestHandler) UpdateRequest(ctx context.Context, id string, updateData map[string]interface{}) error {
+	return h.repo.UpdateRequest(ctx, id, updateData)
+}
 
 func (h *RequestHandler) HandleGetAllRequests(ctx context.Context, senderID, receiverID string) ([]*model.Request, error) {
 	return h.repo.GetAllRequests(ctx, senderID, receiverID)

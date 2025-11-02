@@ -11,6 +11,7 @@ import (
 func AddRequestRoutes(router *gin.RouterGroup, requestService *service.RequestService) {
 	router.POST("/request", createRequestHandler(requestService))
 	router.GET("/request", getAllRequestsHandler(requestService))
+	router.PATCH("/request/:id", updateRequestHandler(requestService))
 	router.GET("/request/:id", getRequestByIDHandler(requestService))
 	router.DELETE("/request/:id", deleteRequestByIDHandler(requestService))
 }
@@ -30,6 +31,25 @@ func createRequestHandler(requestService *service.RequestService) gin.HandlerFun
 		}
 
 		c.JSON(http.StatusOK, gin.H{"message": "Request created", "request_id": requestID})
+	}
+}
+
+func updateRequestHandler(requestService *service.RequestService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+		var updateData map[string]interface{}
+
+		if err := c.ShouldBindJSON(&updateData); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		if err := requestService.UpdateRequest(c.Request.Context(), id, updateData); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "Request updated successfully"})
 	}
 }
 

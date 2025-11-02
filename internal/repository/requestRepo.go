@@ -14,6 +14,7 @@ import (
 
 type RequestRepository interface {
 	CreateRequest(ctx context.Context, req model.Request) (string, error)
+	UpdateRequest(ctx context.Context, id string, updateData map[string]interface{}) error
 	GetAllRequests(ctx context.Context, sendersID, receiversID string) ([]*model.Request, error)
 	GetRequestByID(ctx context.Context, id string) (*model.Request, error)
 	DeleteRequestByID(ctx context.Context, id string) error
@@ -48,6 +49,17 @@ func (r *requestRepository) CreateRequest(ctx context.Context, req model.Request
 	return docRef.ID, nil
 }
 
+func (r *requestRepository) UpdateRequest(ctx context.Context, id string, updateData map[string]interface{}) error {
+	fs := r.firebaseClient.Firestore
+	docRef := fs.Collection("requests").Doc(id)
+
+	_, err := docRef.Set(ctx, updateData, firestore.MergeAll)
+	if err != nil {
+		return fmt.Errorf("failed to update request: %w", err)
+	}
+
+	return nil
+}
 func (r *requestRepository) GetAllRequests(ctx context.Context, senderID, receiverID string) ([]*model.Request, error) {
 	client := r.firebaseClient.Firestore
 
