@@ -3,10 +3,12 @@ package repository
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"play-together/config"
 	"play-together/internal/model"
 
+	"cloud.google.com/go/firestore"
 	"google.golang.org/api/iterator"
 )
 
@@ -14,6 +16,7 @@ type UserRepository interface {
 	GetUsers(ctx context.Context) ([]model.User, error)
 	GetUserByID(ctx context.Context, userID string) (model.User, error)
 	GetUsersByIDs(ctx context.Context, userIDs []string) ([]model.User, error)
+	UpdateUser(ctx context.Context, id string, req model.UpdateUserRequest) error
 }
 
 type userRepository struct {
@@ -97,4 +100,81 @@ func (r *userRepository) GetUsersByIDs(ctx context.Context, userIDs []string) ([
 	}
 
 	return users, nil
+}
+
+func (r *userRepository) UpdateUser(ctx context.Context, id string, req model.UpdateUserRequest) error {
+	fsClient := r.firebaseClient.Firestore
+	if fsClient == nil {
+		return fmt.Errorf("firestore client is not initialized")
+	}
+
+	data := map[string]interface{}{}
+
+	if req.UserName != "" {
+		iter := fsClient.Collection("users").Where("user_name", "==", req.UserName).Documents(ctx)
+		defer iter.Stop()
+
+		for {
+			doc, err := iter.Next()
+			if err == iterator.Done {
+				break
+			}
+			if err != nil {
+				return fmt.Errorf("error checking user_name uniqueness: %w", err)
+			}
+
+			if doc.Ref.ID != id {
+				return fmt.Errorf("user_name '%s' already exists for another user", req.UserName)
+			}
+		}
+
+		data["user_name"] = req.UserName
+	}
+
+	if req.UserName != "" {
+		data["user_name"] = req.UserName
+	}
+	if req.Name != "" {
+		data["display_name"] = req.Name
+	}
+	if req.Age != 0 {
+		data["age"] = req.Age
+	}
+	if req.Gender != "" {
+		data["gender"] = req.Gender
+	}
+	if req.ProfilePhotoURL != "" {
+		data["profile_photo_url"] = req.ProfilePhotoURL
+	}
+	if req.Bio != "" {
+		data["bio"] = req.Bio
+	}
+	if len(req.SportsInterested) > 0 {
+		data["sports_interested"] = req.SportsInterested
+	}
+	if len(req.AvailabilityDays) > 0 {
+		data["availability_days"] = req.AvailabilityDays
+	}
+	if req.PreferredTime != "" {
+		data["preferred_time"] = req.PreferredTime
+	}
+	if len(req.PreferredLocations) > 0 {
+		data["preferred_locations"] = req.PreferredLocations
+	}
+	if req.City != "" {
+		data["city"] = req.City
+	}
+
+	data["updated_at"] = time.Now()
+
+	if len(data) == 0 {
+		return fmt.Errorf("no fields provided for update")
+	}
+
+	_, err := fsClient.Collection("users").Doc(id).Set(ctx, data, firestore.MergeAll)
+	if err != nil {
+		return fmt.Errorf("failed to update user: %w", err)
+	}
+
+	return nil
 }

@@ -25,3 +25,7 @@ func (h *UserHandler) HandleGetUserByID(ctx context.Context, userID string) (mod
 func (h *UserHandler) HandleGetUsersByIDs(ctx context.Context, userIDs []string) ([]model.User, error) {
 	return h.repo.GetUsersByIDs(ctx, userIDs)
 }
+
+func (h *UserHandler) HandleUpdateUser(ctx context.Context, id string, req model.UpdateUserRequest) error {
+	return h.repo.UpdateUser(ctx, id, req)
+}
