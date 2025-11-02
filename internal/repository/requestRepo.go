@@ -33,8 +33,11 @@ func (r *requestRepository) CreateRequest(ctx context.Context, req model.Request
 	docRef := fs.Collection("requests").NewDoc()
 	groupData := model.Request{
 		SendersId:   req.SendersId,
+		SendersName: req.SendersName,
 		ReceiversId: req.ReceiversId,
 		MatchId:     req.MatchId,
+		MatchName:   req.MatchName,
+		Status:      "pending",
 		CreatedAt:   time.Now(),
 	}
 
