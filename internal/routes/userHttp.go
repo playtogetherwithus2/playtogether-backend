@@ -12,6 +12,7 @@ func AddUserRoutes(router *gin.RouterGroup, userService *service.UserService) {
 	router.GET("/users", getUsersHandler(userService))
 	router.GET("/users/:id", getUserByIDHandler(userService))
 	router.POST("/users/id", getUsersByIDsHandler(userService))
+	router.PATCH("/users/:id", updateUserHandler(userService))
 }
 
 func getUsersHandler(userService *service.UserService) gin.HandlerFunc {
@@ -73,6 +74,35 @@ func getUsersByIDsHandler(userService *service.UserService) gin.HandlerFunc {
 
 		c.JSON(http.StatusOK, gin.H{
 			"users": users,
+		})
+	}
+}
+
+func updateUserHandler(userService *service.UserService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id") // Firestore document ID from URL
+
+		var req model.UpdateUserRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error":   "Invalid request payload",
+				"details": err.Error(),
+			})
+			return
+		}
+
+		ctx := c.Request.Context()
+		if err := userService.UpdateUser(ctx, id, req); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"message":   "User updated successfully",
+			"id":        id,
+			"user_name": req.UserName,
 		})
 	}
 }

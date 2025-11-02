@@ -49,10 +49,10 @@ func (r *loginRepository) SignupWithEmailAndPassword(ctx context.Context, email,
 	}
 
 	userData := map[string]interface{}{
-		"email":     email,
-		"password":  password,
-		"id":        user.UID,
-		"createdAt": time.Now(),
+		"email":      email,
+		"password":   password,
+		"id":         user.UID,
+		"created_at": time.Now(),
 	}
 
 	_, err = fsClient.Collection("users").Doc(user.UID).Set(ctx, userData)

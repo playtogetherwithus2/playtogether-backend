@@ -25,3 +25,7 @@ func (s *UserService) GetUserByID(ctx context.Context, userID string) (model.Use
 func (s *UserService) GetUsersByIDs(ctx context.Context, userIDs []string) ([]model.User, error) {
 	return s.handler.HandleGetUsersByIDs(ctx, userIDs)
 }
+
+func (s *UserService) UpdateUser(ctx context.Context, id string, req model.UpdateUserRequest) error {
+	return s.handler.HandleUpdateUser(ctx, id, req)
+}
