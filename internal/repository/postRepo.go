@@ -2,10 +2,10 @@ package repository
 
 import (
 	"context"
-	"time"
 	"errors"
 	"play-together/config"
 	"play-together/internal/model"
+	"time"
 )
 
 type PostRepository interface {
@@ -25,7 +25,7 @@ func NewPostRepository(firebaseClient *config.FirebaseClient) PostRepository {
 func (r *postRepository) CreatePost(ctx context.Context, post *model.GamePost) (string, error) {
 	client := r.firebaseClient.Firestore
 	post.CreatedAt = time.Now()
-	docRef, _, err := client.Collection("game_posts").Add(ctx, post)
+	docRef, _, err := client.Collection("matches").Add(ctx, post)
 	if err != nil {
 		return "", errors.New("failed to create post: " + err.Error())
 	}
@@ -34,7 +34,7 @@ func (r *postRepository) CreatePost(ctx context.Context, post *model.GamePost) (
 
 func (r *postRepository) GetAllPosts(ctx context.Context) ([]*model.GamePost, error) {
 	client := r.firebaseClient.Firestore
-	iter := client.Collection("game_posts").Documents(ctx)
+	iter := client.Collection("matches").Documents(ctx)
 
 	var posts []*model.GamePost
 	for {
@@ -54,7 +54,7 @@ func (r *postRepository) GetAllPosts(ctx context.Context) ([]*model.GamePost, er
 func (r *postRepository) GetPostByID(ctx context.Context, id string) (*model.GamePost, error) {
 	client := r.firebaseClient.Firestore
 
-	doc, err := client.Collection("game_posts").Doc(id).Get(ctx)
+	doc, err := client.Collection("matches").Doc(id).Get(ctx)
 	if err != nil {
 		return nil, errors.New("post not found: " + err.Error())
 	}
