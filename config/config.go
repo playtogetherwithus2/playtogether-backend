@@ -22,7 +22,7 @@ func LoadConfig() *Config {
 
 	return &Config{
 		Port:               getEnv("PORT", "8080"),
-		FirebaseConfigPath: getEnv("FIREBASE_CONFIG_PATH", "C:/Users/navii/Desktop/Playtogether App/playtogether-backend/serviceAccountKey.json"),
+		FirebaseConfigPath: getEnv("FIREBASE_CONFIG_PATH", "/etc/secrets/serviceAccountKey.json"),
 	}
 }
 
