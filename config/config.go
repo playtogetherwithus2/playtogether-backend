@@ -1,6 +1,8 @@
 package config
 
 import (
+	"fmt"
+	"log"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -13,15 +15,16 @@ type Config struct {
 
 func LoadConfig() *Config {
 	_ = godotenv.Load(".env")
-	// fmt.Println(err);
-	// if err != nil {
-	// 	log.Println("Error loading .env file, using system environment variables")
-	// }
 
-	return &Config{
-		Port:               getEnv("PORT", "8080"),
+	cfg := &Config{
+		Port:               getEnv("PORT", "8080"), 
 		FirebaseConfigPath: getEnv("FIREBASE_CONFIG_PATH", "/etc/secrets/serviceAccountKey.json"),
 	}
+
+	// Helpful log for debugging deployment
+	log.Printf("✅ Loaded config: PORT=%s, FIREBASE_CONFIG_PATH=%s", cfg.Port, cfg.FirebaseConfigPath)
+
+	return cfg
 }
 
 func getEnv(key, defaultValue string) string {
