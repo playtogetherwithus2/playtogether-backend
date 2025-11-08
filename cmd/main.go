@@ -2,27 +2,24 @@ package main
 
 import (
 	"log"
-	"os"
-
 	"play-together/config"
 	"play-together/internal/server"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	cfg := config.LoadConfig()
 
-	srv, err := server.InitializeServer(cfg)
-	if err != nil {
-		log.Fatalf("❌ Failed to initialize server: %v", err)
-	}
+	// Initialize router
+	router := gin.Default()
+	router.GET("/", func(c *gin.Context) {
+		c.JSON(200, gin.H{"message": "Server is running 🚀"})
+	})
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = cfg.Port
-	}
+	// Initialize and start server
+	srv := server.NewServer(router, cfg.Port)
 
-	log.Printf("🚀 Starting server on port %s...", port)
-	if err := srv.Start(port); err != nil {
-		log.Fatalf("❌ Server failed: %v", err)
-	}
+	log.Println("Starting server...")
+	srv.Start()
 }
