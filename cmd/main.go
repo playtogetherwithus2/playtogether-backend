@@ -4,8 +4,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/playtogetherwithus2/playtogether-backend/config"
-	"github.com/playtogetherwithus2/playtogether-backend/interval/server"
+	"project/config"
+	"project/interval/server"
 )
 
 func main() {
@@ -22,7 +22,6 @@ func main() {
 	}
 
 	log.Printf("🚀 Starting server on port %s...", port)
-
 	if err := srv.Start(port); err != nil {
 		log.Fatalf("❌ Server failed: %v", err)
 	}
