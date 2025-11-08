@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"play-together/config"
-	"play-together/interval/server"
+	"play-together/internal/server"
 )
 
 func main() {
