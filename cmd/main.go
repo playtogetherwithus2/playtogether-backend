@@ -9,7 +9,10 @@ import (
 )
 
 func main() {
+	log.Println("🟢 Starting main.go")
+
 	cfg := config.LoadConfig()
+	log.Printf("✅ Config loaded: PORT=%s", cfg.Port)
 
 	// Initialize router
 	router := gin.Default()
@@ -17,9 +20,9 @@ func main() {
 		c.JSON(200, gin.H{"message": "Server is running 🚀"})
 	})
 
-	// Initialize and start server
+	log.Println("⚙️  Creating server instance...")
 	srv := server.NewServer(router, cfg.Port)
 
-	log.Println("Starting server...")
+	log.Println("🚀 Calling srv.Start() ...")
 	srv.Start()
 }
