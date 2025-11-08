@@ -3,6 +3,7 @@ package routes
 import (
 	"play-together/internal/model"
 	"play-together/internal/service"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -36,11 +37,20 @@ func createPostHandler(postService *service.PostService) gin.HandlerFunc {
 
 func getAllPostsHandler(postService *service.PostService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		posts, err := postService.GetAllPosts(c.Request.Context())
+		searchKey := c.Query("search_key")
+
+		searchKey = strings.TrimSpace(searchKey)
+		searchKey = strings.Trim(searchKey, `"'`)
+
+		posts, err := postService.GetAllPosts(c.Request.Context(), searchKey)
 		if err != nil {
-			c.JSON(500, gin.H{"error": "Failed to fetch posts", "details": err.Error()})
+			c.JSON(500, gin.H{
+				"error":   "Failed to fetch posts",
+				"details": err.Error(),
+			})
 			return
 		}
+
 		c.JSON(200, gin.H{"posts": posts})
 	}
 }

@@ -22,8 +22,8 @@ func (s *PostService) CreatePost(ctx context.Context, post *model.GamePost) (str
 	return s.handler.HandleCreatePost(ctx, post)
 }
 
-func (s *PostService) GetAllPosts(ctx context.Context) ([]*model.GamePost, error) {
-	return s.handler.HandleGetAllPosts(ctx)
+func (s *PostService) GetAllPosts(ctx context.Context, searchKey string) ([]*model.GamePost, error) {
+	return s.handler.HandleGetAllPosts(ctx, searchKey)
 }
 
 func (s *PostService) GetPostByID(ctx context.Context, id string) (*model.GamePost, error) {
