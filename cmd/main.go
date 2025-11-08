@@ -4,8 +4,8 @@ import (
 	"log"
 	"os"
 
-	"project/config"
-	"project/interval/server"
+	"play-together/config"
+	"play-together/interval/server"
 )
 
 func main() {
