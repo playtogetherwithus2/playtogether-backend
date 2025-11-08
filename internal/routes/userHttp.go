@@ -1,9 +1,11 @@
 package routes
 
 import (
+	"fmt"
 	"net/http"
 	"play-together/internal/model"
 	"play-together/internal/service"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -80,15 +82,49 @@ func getUsersByIDsHandler(userService *service.UserService) gin.HandlerFunc {
 
 func updateUserHandler(userService *service.UserService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		id := c.Param("id") // Firestore document ID from URL
+		id := c.Param("id") 
+
+		if err := c.Request.ParseMultipartForm(10 << 20); err != nil { // 10 MB limit
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to parse form data"})
+			return
+		}
 
 		var req model.UpdateUserRequest
-		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error":   "Invalid request payload",
-				"details": err.Error(),
-			})
-			return
+
+		req.UserName = c.PostForm("user_name")
+		req.Name = c.PostForm("name")
+		req.Gender = c.PostForm("gender")
+		req.Bio = c.PostForm("bio")
+		req.City = c.PostForm("city")
+		req.PreferredTime = c.PostForm("preferred_time")
+
+		if ageStr := c.PostForm("age"); ageStr != "" {
+			var age int
+			if _, err := fmt.Sscanf(ageStr, "%d", &age); err == nil {
+				req.Age = age
+			}
+		}
+
+		if sports := c.PostForm("sports_interested"); sports != "" {
+			req.SportsInterested = strings.Split(sports, ",")
+		}
+
+		if days := c.PostForm("availability_days"); days != "" {
+			req.AvailabilityDays = strings.Split(days, ",")
+		}
+
+		if locations := c.PostForm("preferred_locations"); locations != "" {
+			req.PreferredLocations = strings.Split(locations, ",")
+		}
+
+		_, header, err := c.Request.FormFile("profile_photo")
+		if err == nil && header != nil {
+			filePath := fmt.Sprintf("/tmp/%s", header.Filename)
+			if err := c.SaveUploadedFile(header, filePath); err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save uploaded image"})
+				return
+			}
+			req.ProfilePhotoURL = filePath
 		}
 
 		ctx := c.Request.Context()

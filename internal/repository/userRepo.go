@@ -2,11 +2,16 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
 	"time"
 
 	"play-together/config"
 	"play-together/internal/model"
+
+	"github.com/cloudinary/cloudinary-go/v2"
+	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 
 	"cloud.google.com/go/firestore"
 	"google.golang.org/api/iterator"
@@ -144,7 +149,11 @@ func (r *userRepository) UpdateUser(ctx context.Context, id string, req model.Up
 		data["gender"] = req.Gender
 	}
 	if req.ProfilePhotoURL != "" {
-		data["profile_photo_url"] = req.ProfilePhotoURL
+		imageURL, err := uploadImageToCloudinary(req.ProfilePhotoURL)
+		if err != nil {
+			return fmt.Errorf("image upload failed: %w", err)
+		}
+		data["profile_photo_url"] = imageURL
 	}
 	if req.Bio != "" {
 		data["bio"] = req.Bio
@@ -177,4 +186,39 @@ func (r *userRepository) UpdateUser(ctx context.Context, id string, req model.Up
 	}
 
 	return nil
+}
+
+func uploadImageToCloudinary(filePath string) (string, error) {
+	cfg := config.LoadConfig()
+	data, err := os.ReadFile(cfg.FirebaseConfigPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to read service account file: %w", err)
+	}
+
+	type ServiceAccount struct {
+		CloudinaryURL string `json:"cloudinary_url"`
+	}
+
+	var sa ServiceAccount
+	if err := json.Unmarshal(data, &sa); err != nil {
+		return "", fmt.Errorf("failed to parse service account json: %w", err)
+	}
+
+	if sa.CloudinaryURL == "" {
+		return "", fmt.Errorf("cloudinary_url not found in service account json")
+	}
+
+	cld, err := cloudinary.NewFromURL(sa.CloudinaryURL)
+	if err != nil {
+		return "", fmt.Errorf("failed to initialize cloudinary: %w", err)
+	}
+
+	uploadResult, err := cld.Upload.Upload(context.Background(), filePath, uploader.UploadParams{
+		Folder: "user_profiles",
+	})
+	if err != nil {
+		return "", fmt.Errorf("failed to upload to cloudinary: %w", err)
+	}
+
+	return uploadResult.SecureURL, nil
 }
