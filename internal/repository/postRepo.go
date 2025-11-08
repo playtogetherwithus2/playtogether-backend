@@ -5,12 +5,14 @@ import (
 	"errors"
 	"play-together/config"
 	"play-together/internal/model"
+	"regexp"
+	"strings"
 	"time"
 )
 
 type PostRepository interface {
 	CreatePost(ctx context.Context, post *model.GamePost) (string, error)
-	GetAllPosts(ctx context.Context) ([]*model.GamePost, error)
+	GetAllPosts(ctx context.Context, searchKey string) ([]*model.GamePost, error)
 	GetPostByID(ctx context.Context, id string) (*model.GamePost, error)
 }
 
@@ -32,7 +34,7 @@ func (r *postRepository) CreatePost(ctx context.Context, post *model.GamePost) (
 	return docRef.ID, nil
 }
 
-func (r *postRepository) GetAllPosts(ctx context.Context) ([]*model.GamePost, error) {
+func (r *postRepository) GetAllPosts(ctx context.Context, searchKey string) ([]*model.GamePost, error) {
 	client := r.firebaseClient.Firestore
 	iter := client.Collection("matches").Documents(ctx)
 
@@ -42,13 +44,52 @@ func (r *postRepository) GetAllPosts(ctx context.Context) ([]*model.GamePost, er
 		if err != nil {
 			break
 		}
+
 		var post model.GamePost
 		if err := doc.DataTo(&post); err == nil {
 			post.ID = doc.Ref.ID
 			posts = append(posts, &post)
 		}
 	}
-	return posts, nil
+
+	if searchKey == "" {
+		return posts, nil
+	}
+
+	searchKey = strings.ToLower(strings.TrimSpace(searchKey))
+
+	pattern := ".*"
+	for _, ch := range searchKey {
+		pattern += regexp.QuoteMeta(string(ch)) + ".*"
+	}
+	re, _ := regexp.Compile("(?i)" + pattern)
+
+	var filtered []*model.GamePost
+
+	for _, p := range posts {
+		if re.MatchString(strings.ToLower(p.Name)) {
+			filtered = append(filtered, p)
+		}
+	}
+	if len(filtered) > 0 {
+		return filtered, nil
+	}
+
+	for _, p := range posts {
+		if re.MatchString(strings.ToLower(p.Venue)) {
+			filtered = append(filtered, p)
+		}
+	}
+	if len(filtered) > 0 {
+		return filtered, nil
+	}
+	for _, p := range posts {
+		if re.MatchString(strings.ToLower(p.About)) {
+			filtered = append(filtered, p)
+		}
+	}
+
+	return filtered, nil
 }
 
 func (r *postRepository) GetPostByID(ctx context.Context, id string) (*model.GamePost, error) {
