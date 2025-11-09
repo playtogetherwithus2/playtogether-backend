@@ -22,8 +22,8 @@ func (s *ChatService) CreateGroup(ctx context.Context, req model.CreateGroupRequ
 	return s.handler.CreateGroup(ctx, req)
 }
 
-func (s *ChatService) GetAllGroups(ctx context.Context, memberID string) ([]*model.GroupDetails, error) {
-	return s.handler.GetAllGroups(ctx, memberID)
+func (s *ChatService) GetAllGroups(ctx context.Context, memberID, groupName string) ([]*model.GroupDetails, error) {
+	return s.handler.GetAllGroups(ctx, memberID, groupName)
 }
 
 func (s *ChatService) GetMessages(ctx context.Context, groupID string) ([]model.Message, error) {

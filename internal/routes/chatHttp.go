@@ -22,8 +22,9 @@ func getAllGroupsHandler(chatService *service.ChatService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
 		memberID := c.Query("member_id")
+		groupName := c.Query("group_name")
 
-		groups, err := chatService.GetAllGroups(ctx, memberID)
+		groups, err := chatService.GetAllGroups(ctx, memberID, groupName)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error":   "Failed to fetch groups",
