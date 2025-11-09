@@ -5,6 +5,7 @@ go 1.24.0
 require (
 	cloud.google.com/go/firestore v1.19.0
 	firebase.google.com/go v3.13.0+incompatible
+	github.com/cloudinary/cloudinary-go/v2 v2.13.0
 	github.com/gin-gonic/gin v1.11.0
 	github.com/google/wire v0.7.0
 	github.com/joho/godotenv v1.5.1
@@ -27,7 +28,6 @@ require (
 	github.com/bytedance/sonic v1.14.0 // indirect
 	github.com/bytedance/sonic/loader v0.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
-	github.com/cloudinary/cloudinary-go/v2 v2.13.0 // indirect
 	github.com/cloudwego/base64x v0.1.6 // indirect
 	github.com/cncf/xds/go v0.0.0-20250501225837-2ac532fd4443 // indirect
 	github.com/creasty/defaults v1.7.0 // indirect

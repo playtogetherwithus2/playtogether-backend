@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"play-together/config"
@@ -20,7 +21,7 @@ type ChatRepository interface {
 	AddMemberByMatchID(ctx context.Context, matchID string, req model.ModifyMemberRequest) error
 	RemoveMember(ctx context.Context, groupID string, req model.ModifyMemberRequest) error
 	GetGroupDetails(ctx context.Context, groupID string) (model.GroupDetails, error)
-	GetAllGroups(ctx context.Context, memberID string) ([]*model.GroupDetails, error)
+	GetAllGroups(ctx context.Context, memberID, groupName string) ([]*model.GroupDetails, error)
 }
 
 type chatRepository struct {
@@ -58,15 +59,14 @@ func (r *chatRepository) CreateGroup(ctx context.Context, req model.CreateGroupR
 	return docRef.ID, nil
 }
 
-func (r *chatRepository) GetAllGroups(ctx context.Context, memberID string) ([]*model.GroupDetails, error) {
+func (r *chatRepository) GetAllGroups(ctx context.Context, memberID string, groupName string) ([]*model.GroupDetails, error) {
 	client := r.firebaseClient.Firestore
-	var iter *firestore.DocumentIterator
+	collection := client.Collection("groups")
 
-	if memberID != "" {
-		iter = client.Collection("groups").Where("members", "array-contains", memberID).Documents(ctx)
-	} else {
-		iter = client.Collection("groups").Documents(ctx)
-	}
+	// Step 1: Get all groups for the member
+	iter := collection.
+		Where("members", "array-contains", memberID).
+		Documents(ctx)
 
 	groups := make([]*model.GroupDetails, 0)
 
@@ -84,6 +84,19 @@ func (r *chatRepository) GetAllGroups(ctx context.Context, memberID string) ([]*
 			group.ID = doc.Ref.ID
 			groups = append(groups, &group)
 		}
+	}
+
+	// Step 2: Filter by group name (case-insensitive + anywhere match)
+	if groupName != "" {
+		search := strings.ToLower(groupName)
+		filtered := make([]*model.GroupDetails, 0)
+
+		for _, g := range groups {
+			if strings.Contains(strings.ToLower(g.GroupName), search) {
+				filtered = append(filtered, g)
+			}
+		}
+		groups = filtered
 	}
 
 	return groups, nil
