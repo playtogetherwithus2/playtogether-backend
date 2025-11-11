@@ -2,7 +2,9 @@ package routes
 
 import (
 	"fmt"
+	"io"
 	"net/http"
+	"os"
 	"play-together/internal/model"
 	"play-together/internal/service"
 	"strings"
@@ -82,56 +84,60 @@ func getUsersByIDsHandler(userService *service.UserService) gin.HandlerFunc {
 
 func updateUserHandler(userService *service.UserService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		id := c.Param("id") 
-
-		if err := c.Request.ParseMultipartForm(10 << 20); err != nil { // 10 MB limit
+		id := c.Param("id")
+		if id == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "User ID is required"})
+			return
+		}
+		if err := c.Request.ParseMultipartForm(10 << 20); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to parse form data"})
 			return
 		}
 
 		var req model.UpdateUserRequest
-
 		req.UserName = c.PostForm("user_name")
 		req.Name = c.PostForm("name")
 		req.Gender = c.PostForm("gender")
 		req.Bio = c.PostForm("bio")
 		req.City = c.PostForm("city")
 		req.PreferredTime = c.PostForm("preferred_time")
-
 		if ageStr := c.PostForm("age"); ageStr != "" {
 			var age int
 			if _, err := fmt.Sscanf(ageStr, "%d", &age); err == nil {
 				req.Age = age
 			}
 		}
-
 		if sports := c.PostForm("sports_interested"); sports != "" {
 			req.SportsInterested = strings.Split(sports, ",")
 		}
-
 		if days := c.PostForm("availability_days"); days != "" {
 			req.AvailabilityDays = strings.Split(days, ",")
 		}
-
 		if locations := c.PostForm("preferred_locations"); locations != "" {
 			req.PreferredLocations = strings.Split(locations, ",")
 		}
+		file, header, err := c.Request.FormFile("profile_photo")
+		if err == nil && header != nil && file != nil {
+			defer file.Close()
 
-		_, header, err := c.Request.FormFile("profile_photo")
-		if err == nil && header != nil {
-			filePath := fmt.Sprintf("/tmp/%s", header.Filename)
-			if err := c.SaveUploadedFile(header, filePath); err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save uploaded image"})
+			tmpFile, err := os.CreateTemp("/tmp", "profile-*.png")
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create temp file"})
 				return
 			}
-			req.ProfilePhotoURL = filePath
+			defer tmpFile.Close()
+
+			if _, err := io.Copy(tmpFile, file); err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save uploaded file"})
+				return
+			}
+
+			req.ProfilePhotoURL = tmpFile.Name()
 		}
 
 		ctx := c.Request.Context()
 		if err := userService.UpdateUser(ctx, id, req); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
