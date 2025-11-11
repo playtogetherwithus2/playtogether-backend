@@ -21,10 +21,12 @@ func AddChatRoutes(router *gin.RouterGroup, chatService *service.ChatService) {
 func getAllGroupsHandler(chatService *service.ChatService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
+
 		memberID := c.Query("member_id")
 		groupName := c.Query("group_name")
+		matchID := c.Query("match_id")
 
-		groups, err := chatService.GetAllGroups(ctx, memberID, groupName)
+		groups, err := chatService.GetAllGroups(ctx, memberID, groupName, matchID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error":   "Failed to fetch groups",
@@ -33,9 +35,7 @@ func getAllGroupsHandler(chatService *service.ChatService) gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{
-			"groups": groups,
-		})
+		c.JSON(http.StatusOK, gin.H{"groups": groups})
 	}
 }
 

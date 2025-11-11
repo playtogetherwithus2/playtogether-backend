@@ -28,6 +28,7 @@ type Message struct {
 
 type GroupDetails struct {
 	ID        string    `json:"id" firestore:"id"`
+	MatchId   string    `json:"match_id" firestore:"match_id"`
 	GroupName string    `json:"group_name" firestore:"group_name"`
 	CreatedBy string    `json:"created_by" firestore:"created_by"`
 	Members   []string  `json:"members" firestore:"members"`

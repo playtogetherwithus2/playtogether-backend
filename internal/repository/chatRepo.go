@@ -21,7 +21,7 @@ type ChatRepository interface {
 	AddMemberByMatchID(ctx context.Context, matchID string, req model.ModifyMemberRequest) error
 	RemoveMember(ctx context.Context, groupID string, req model.ModifyMemberRequest) error
 	GetGroupDetails(ctx context.Context, groupID string) (model.GroupDetails, error)
-	GetAllGroups(ctx context.Context, memberID, groupName string) ([]*model.GroupDetails, error)
+	GetAllGroups(ctx context.Context, matchID string, memberID, groupName string) ([]*model.GroupDetails, error)
 }
 
 type chatRepository struct {
@@ -59,14 +59,23 @@ func (r *chatRepository) CreateGroup(ctx context.Context, req model.CreateGroupR
 	return docRef.ID, nil
 }
 
-func (r *chatRepository) GetAllGroups(ctx context.Context, memberID string, groupName string) ([]*model.GroupDetails, error) {
+func (r *chatRepository) GetAllGroups(ctx context.Context, memberID, groupName, matchID string) ([]*model.GroupDetails, error) {
 	client := r.firebaseClient.Firestore
 	collection := client.Collection("groups")
 
-	// Step 1: Get all groups for the member
-	iter := collection.
-		Where("members", "array-contains", memberID).
-		Documents(ctx)
+	var query firestore.Query
+	query = collection.Query
+
+	if memberID != "" {
+		query = query.Where("members", "array-contains", memberID)
+	}
+
+	if matchID != "" {
+		query = query.Where("match_id", "==", matchID)
+	}
+
+	iter := query.Documents(ctx)
+	defer iter.Stop()
 
 	groups := make([]*model.GroupDetails, 0)
 
@@ -80,17 +89,17 @@ func (r *chatRepository) GetAllGroups(ctx context.Context, memberID string, grou
 		}
 
 		var group model.GroupDetails
-		if err := doc.DataTo(&group); err == nil {
-			group.ID = doc.Ref.ID
-			groups = append(groups, &group)
+		if err := doc.DataTo(&group); err != nil {
+			continue
 		}
+
+		group.ID = doc.Ref.ID
+		groups = append(groups, &group)
 	}
 
-	// Step 2: Filter by group name (case-insensitive + anywhere match)
 	if groupName != "" {
 		search := strings.ToLower(groupName)
 		filtered := make([]*model.GroupDetails, 0)
-
 		for _, g := range groups {
 			if strings.Contains(strings.ToLower(g.GroupName), search) {
 				filtered = append(filtered, g)
