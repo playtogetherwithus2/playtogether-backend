@@ -57,12 +57,14 @@ func getAllRequestsHandler(requestService *service.RequestService) gin.HandlerFu
 	return func(c *gin.Context) {
 		senderID := c.Query("senders_id")
 		receiverID := c.Query("receivers_id")
+		includeUserData := c.Query("user_data") == "true"
 
-		requests, err := requestService.GetAllRequests(c.Request.Context(), senderID, receiverID)
+		requests, err := requestService.GetAllRequests(c.Request.Context(), senderID, receiverID, includeUserData)
 		if err != nil {
 			c.JSON(500, gin.H{"error": "Failed to fetch requests", "details": err.Error()})
 			return
 		}
+
 		c.JSON(200, gin.H{"requests": requests})
 	}
 }

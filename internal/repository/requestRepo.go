@@ -15,7 +15,7 @@ import (
 type RequestRepository interface {
 	CreateRequest(ctx context.Context, req model.Request) (string, error)
 	UpdateRequest(ctx context.Context, id string, updateData map[string]interface{}) error
-	GetAllRequests(ctx context.Context, sendersID, receiversID string) ([]*model.Request, error)
+	GetAllRequests(ctx context.Context, sendersID, receiversID string, includeUserData bool) ([]*model.Request, error)
 	GetRequestByID(ctx context.Context, id string) (*model.Request, error)
 	DeleteRequestByID(ctx context.Context, id string) error
 }
@@ -59,11 +59,11 @@ func (r *requestRepository) UpdateRequest(ctx context.Context, id string, update
 
 	return nil
 }
-func (r *requestRepository) GetAllRequests(ctx context.Context, senderID, receiverID string) ([]*model.Request, error) {
+
+func (r *requestRepository) GetAllRequests(ctx context.Context, senderID, receiverID string, includeUserData bool) ([]*model.Request, error) {
 	client := r.firebaseClient.Firestore
 
 	var iter *firestore.DocumentIterator
-
 	if senderID != "" {
 		iter = client.Collection("requests").Where("senders_id", "==", senderID).Documents(ctx)
 	} else if receiverID != "" {
@@ -79,11 +79,39 @@ func (r *requestRepository) GetAllRequests(ctx context.Context, senderID, receiv
 		if err != nil {
 			break
 		}
+
 		var request model.Request
-		if err := doc.DataTo(&request); err == nil {
-			request.ID = doc.Ref.ID
-			requests = append(requests, &request)
+		if err := doc.DataTo(&request); err != nil {
+			continue
 		}
+
+		request.ID = doc.Ref.ID
+		if includeUserData {
+			if request.SendersId != "" {
+				senderSnap, err := client.Collection("users").Doc(request.SendersId).Get(ctx)
+				if err == nil {
+					var sender model.UserDetails
+					if err := senderSnap.DataTo(&sender); err == nil {
+						sender.UID = senderSnap.Ref.ID
+						request.Sender = &sender
+					}
+				}
+			}
+
+			// Fetch receiver data
+			if request.ReceiversId != "" {
+				receiverSnap, err := client.Collection("users").Doc(request.ReceiversId).Get(ctx)
+				if err == nil && receiverSnap.Exists() {
+					var receiver model.UserDetails
+					if err := receiverSnap.DataTo(&receiver); err == nil {
+						receiver.UID = receiverSnap.Ref.ID
+						request.Receiver = &receiver
+					}
+				}
+			}
+		}
+
+		requests = append(requests, &request)
 	}
 
 	return requests, nil

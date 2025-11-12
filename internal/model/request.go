@@ -10,4 +10,7 @@ type Request struct {
 	MatchName   string    `json:"match_name" firestore:"match_name"`
 	Status      string    `json:"status" firestore:"status"`
 	CreatedAt   time.Time `json:"created_at" firestore:"created_at"`
+
+	Sender   *UserDetails `json:"sender,omitempty" firestore:"-"`
+	Receiver *UserDetails `json:"receiver,omitempty" firestore:"-"`
 }

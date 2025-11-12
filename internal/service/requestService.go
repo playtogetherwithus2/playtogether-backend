@@ -42,8 +42,8 @@ func (s *RequestService) UpdateRequest(ctx context.Context, id string, updateDat
 	return s.handler.UpdateRequest(ctx, id, updateData)
 }
 
-func (s *RequestService) GetAllRequests(ctx context.Context, senderID, receiverID string) ([]*model.Request, error) {
-	return s.handler.HandleGetAllRequests(ctx, senderID, receiverID)
+func (s *RequestService) GetAllRequests(ctx context.Context, senderID, receiverID string, includeUserData bool) ([]*model.Request, error) {
+	return s.handler.HandleGetAllRequests(ctx, senderID, receiverID, includeUserData)
 }
 
 func (s *RequestService) GetRequestByID(ctx context.Context, id string) (*model.Request, error) {
