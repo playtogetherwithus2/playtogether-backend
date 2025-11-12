@@ -14,15 +14,15 @@ func NewUserHandler(repo repository.UserRepository) *UserHandler {
 	return &UserHandler{repo: repo}
 }
 
-func (h *UserHandler) HandleGetUsers(ctx context.Context) ([]model.User, error) {
+func (h *UserHandler) HandleGetUsers(ctx context.Context) ([]model.UserDetails, error) {
 	return h.repo.GetUsers(ctx)
 }
 
-func (h *UserHandler) HandleGetUserByID(ctx context.Context, userID string) (model.User, error) {
+func (h *UserHandler) HandleGetUserByID(ctx context.Context, userID string) (model.UserDetails, error) {
 	return h.repo.GetUserByID(ctx, userID)
 }
 
-func (h *UserHandler) HandleGetUsersByIDs(ctx context.Context, userIDs []string) ([]model.User, error) {
+func (h *UserHandler) HandleGetUsersByIDs(ctx context.Context, userIDs []string) ([]model.UserDetails, error) {
 	return h.repo.GetUsersByIDs(ctx, userIDs)
 }
 
