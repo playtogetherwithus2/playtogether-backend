@@ -83,12 +83,6 @@ func (r *postRepository) GetAllPosts(ctx context.Context, searchKey string) ([]*
 	if len(filtered) > 0 {
 		return filtered, nil
 	}
-	for _, p := range posts {
-		if re.MatchString(strings.ToLower(p.About)) {
-			filtered = append(filtered, p)
-		}
-	}
-
 	return filtered, nil
 }
 
