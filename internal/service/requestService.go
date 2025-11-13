@@ -46,11 +46,11 @@ func (s *RequestService) GetAllRequests(ctx context.Context, senderID, receiverI
 	return s.handler.HandleGetAllRequests(ctx, senderID, receiverID, includeUserData)
 }
 
-func (s *RequestService) GetRequestByID(ctx context.Context, id string) (*model.Request, error) {
+func (s *RequestService) GetRequestByID(ctx context.Context, id string, includeUserData bool) (*model.Request, error) {
 	if id == "" {
 		return nil, errors.New("request ID is required")
 	}
-	return s.handler.HandleGetRequestByID(ctx, id)
+	return s.handler.HandleGetRequestByID(ctx, id, includeUserData)
 }
 
 func (s *RequestService) DeleteRequestByID(ctx context.Context, id string) error {

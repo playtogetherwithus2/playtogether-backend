@@ -72,8 +72,9 @@ func getAllRequestsHandler(requestService *service.RequestService) gin.HandlerFu
 func getRequestByIDHandler(requestService *service.RequestService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
+		includeUserData := c.Query("user_data") == "true"
 
-		request, err := requestService.GetRequestByID(c.Request.Context(), id)
+		request, err := requestService.GetRequestByID(c.Request.Context(), id, includeUserData)
 		if err != nil {
 			c.JSON(404, gin.H{
 				"error":   "Post not found",

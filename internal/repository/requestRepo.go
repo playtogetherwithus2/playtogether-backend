@@ -16,7 +16,7 @@ type RequestRepository interface {
 	CreateRequest(ctx context.Context, req model.Request) (string, error)
 	UpdateRequest(ctx context.Context, id string, updateData map[string]interface{}) error
 	GetAllRequests(ctx context.Context, sendersID, receiversID string, includeUserData bool) ([]*model.Request, error)
-	GetRequestByID(ctx context.Context, id string) (*model.Request, error)
+	GetRequestByID(ctx context.Context, id string, includeUserData bool) (*model.Request, error)
 	DeleteRequestByID(ctx context.Context, id string) error
 }
 
@@ -117,7 +117,7 @@ func (r *requestRepository) GetAllRequests(ctx context.Context, senderID, receiv
 	return requests, nil
 }
 
-func (r *requestRepository) GetRequestByID(ctx context.Context, id string) (*model.Request, error) {
+func (r *requestRepository) GetRequestByID(ctx context.Context, id string, includeUserData bool) (*model.Request, error) {
 	client := r.firebaseClient.Firestore
 
 	doc, err := client.Collection("requests").Doc(id).Get(ctx)
@@ -131,6 +131,30 @@ func (r *requestRepository) GetRequestByID(ctx context.Context, id string) (*mod
 	}
 
 	request.ID = doc.Ref.ID
+	if includeUserData {
+		if request.SendersId != "" {
+			senderSnap, err := client.Collection("users").Doc(request.SendersId).Get(ctx)
+			if err == nil {
+				var sender model.UserDetails
+				if err := senderSnap.DataTo(&sender); err == nil {
+					sender.UID = senderSnap.Ref.ID
+					request.Sender = &sender
+				}
+			}
+		}
+
+		// Fetch receiver data
+		if request.ReceiversId != "" {
+			receiverSnap, err := client.Collection("users").Doc(request.ReceiversId).Get(ctx)
+			if err == nil && receiverSnap.Exists() {
+				var receiver model.UserDetails
+				if err := receiverSnap.DataTo(&receiver); err == nil {
+					receiver.UID = receiverSnap.Ref.ID
+					request.Receiver = &receiver
+				}
+			}
+		}
+	}
 	return &request, nil
 }
 
