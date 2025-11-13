@@ -18,8 +18,8 @@ func (h *PostHandler) HandleCreatePost(ctx context.Context, post *model.GamePost
 	return h.repo.CreatePost(ctx, post)
 }
 
-func (h *PostHandler) HandleGetAllPosts(ctx context.Context, searchKey string) ([]*model.GamePost, error) {
-	return h.repo.GetAllPosts(ctx, searchKey)
+func (h *PostHandler) HandleGetAllPosts(ctx context.Context, searchKey, memberIn, memberNotIn string) ([]*model.GamePost, error) {
+	return h.repo.GetAllPosts(ctx, searchKey, memberIn, memberNotIn)
 }
 func (h *PostHandler) HandleGetPostByID(ctx context.Context, id string) (*model.GamePost, error) {
 	return h.repo.GetPostByID(ctx, id)

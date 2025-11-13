@@ -12,7 +12,7 @@ import (
 
 type PostRepository interface {
 	CreatePost(ctx context.Context, post *model.GamePost) (string, error)
-	GetAllPosts(ctx context.Context, searchKey string) ([]*model.GamePost, error)
+	GetAllPosts(ctx context.Context, searchKey string, memberIn string, memberNotIn string) ([]*model.GamePost, error)
 	GetPostByID(ctx context.Context, id string) (*model.GamePost, error)
 }
 
@@ -34,17 +34,16 @@ func (r *postRepository) CreatePost(ctx context.Context, post *model.GamePost) (
 	return docRef.ID, nil
 }
 
-func (r *postRepository) GetAllPosts(ctx context.Context, searchKey string) ([]*model.GamePost, error) {
+func (r *postRepository) GetAllPosts(ctx context.Context, searchKey, memberIn, memberNotIn string) ([]*model.GamePost, error) {
 	client := r.firebaseClient.Firestore
-	iter := client.Collection("matches").Documents(ctx)
 
+	iter := client.Collection("matches").Documents(ctx)
 	var posts []*model.GamePost
 	for {
 		doc, err := iter.Next()
 		if err != nil {
 			break
 		}
-
 		var post model.GamePost
 		if err := doc.DataTo(&post); err == nil {
 			post.ID = doc.Ref.ID
@@ -52,12 +51,59 @@ func (r *postRepository) GetAllPosts(ctx context.Context, searchKey string) ([]*
 		}
 	}
 
+	if memberIn != "" || memberNotIn != "" {
+		groupIter := client.Collection("groups").Documents(ctx)
+
+		allMatchIDs := make(map[string]bool)
+		userMatchIDs := make(map[string]bool)
+
+		for {
+			doc, err := groupIter.Next()
+			if err != nil {
+				break
+			}
+
+			var group model.GroupDetails
+			if err := doc.DataTo(&group); err != nil {
+				continue
+			}
+
+			allMatchIDs[group.MatchId] = true
+
+			for _, m := range group.Members {
+				if m == memberIn || m == memberNotIn {
+					userMatchIDs[group.MatchId] = true
+					break
+				}
+			}
+		}
+
+		var filtered []*model.GamePost
+
+		if memberIn != "" {
+			for _, p := range posts {
+				if userMatchIDs[p.ID] {
+					filtered = append(filtered, p)
+				}
+			}
+		}
+
+		if memberNotIn != "" {
+			for _, p := range posts {
+				if allMatchIDs[p.ID] && !userMatchIDs[p.ID] {
+					filtered = append(filtered, p)
+				}
+			}
+		}
+
+		posts = filtered
+	}
+
 	if searchKey == "" {
 		return posts, nil
 	}
 
 	searchKey = strings.ToLower(strings.TrimSpace(searchKey))
-
 	pattern := ".*"
 	for _, ch := range searchKey {
 		pattern += regexp.QuoteMeta(string(ch)) + ".*"
@@ -65,24 +111,12 @@ func (r *postRepository) GetAllPosts(ctx context.Context, searchKey string) ([]*
 	re, _ := regexp.Compile("(?i)" + pattern)
 
 	var filtered []*model.GamePost
-
 	for _, p := range posts {
-		if re.MatchString(strings.ToLower(p.Name)) {
+		if re.MatchString(strings.ToLower(p.Name)) || re.MatchString(strings.ToLower(p.Venue)) {
 			filtered = append(filtered, p)
 		}
 	}
-	if len(filtered) > 0 {
-		return filtered, nil
-	}
 
-	for _, p := range posts {
-		if re.MatchString(strings.ToLower(p.Venue)) {
-			filtered = append(filtered, p)
-		}
-	}
-	if len(filtered) > 0 {
-		return filtered, nil
-	}
 	return filtered, nil
 }
 

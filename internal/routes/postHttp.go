@@ -38,11 +38,13 @@ func createPostHandler(postService *service.PostService) gin.HandlerFunc {
 func getAllPostsHandler(postService *service.PostService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		searchKey := c.Query("search_key")
+		memberIn := c.Query("in")
+		memberNotIn := c.Query("not_in")
 
 		searchKey = strings.TrimSpace(searchKey)
 		searchKey = strings.Trim(searchKey, `"'`)
 
-		posts, err := postService.GetAllPosts(c.Request.Context(), searchKey)
+		posts, err := postService.GetAllPosts(c.Request.Context(), searchKey, memberIn, memberNotIn)
 		if err != nil {
 			c.JSON(500, gin.H{
 				"error":   "Failed to fetch posts",
