@@ -15,7 +15,7 @@ import (
 type RequestRepository interface {
 	CreateRequest(ctx context.Context, req model.Request) (string, error)
 	UpdateRequest(ctx context.Context, id string, updateData map[string]interface{}) error
-	GetAllRequests(ctx context.Context, sendersID, receiversID string, includeUserData bool) ([]*model.Request, error)
+	GetAllRequests(ctx context.Context, sendersID, receiversID string, includeUserData bool, status string) ([]*model.Request, error)
 	GetRequestByID(ctx context.Context, id string, includeUserData bool) (*model.Request, error)
 	DeleteRequestByID(ctx context.Context, id string) error
 }
@@ -60,7 +60,7 @@ func (r *requestRepository) UpdateRequest(ctx context.Context, id string, update
 	return nil
 }
 
-func (r *requestRepository) GetAllRequests(ctx context.Context, senderID, receiverID string, includeUserData bool) ([]*model.Request, error) {
+func (r *requestRepository) GetAllRequests(ctx context.Context, senderID, receiverID string, includeUserData bool, status string) ([]*model.Request, error) {
 	client := r.firebaseClient.Firestore
 
 	var iter *firestore.DocumentIterator
@@ -68,6 +68,8 @@ func (r *requestRepository) GetAllRequests(ctx context.Context, senderID, receiv
 		iter = client.Collection("requests").Where("senders_id", "==", senderID).Documents(ctx)
 	} else if receiverID != "" {
 		iter = client.Collection("requests").Where("receivers_id", "==", receiverID).Documents(ctx)
+	} else if status != "" {
+		iter = client.Collection("requests").Where("status", "==", status).Documents(ctx)
 	} else {
 		iter = client.Collection("requests").Documents(ctx)
 	}

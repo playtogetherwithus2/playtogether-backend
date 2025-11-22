@@ -8,6 +8,7 @@ type GamePost struct {
 	Venue           string    `json:"venue" binding:"required" firestore:"venue"`
 	PlayersRequired int       `json:"players_required" binding:"required" firestore:"players_required"`
 	Timing          string    `json:"timing" binding:"required" firestore:"timing"`
+	Date            string    `json:"date" binding:"required" firestore:"date"`
 	NeedExtraPlayer bool      `json:"need_extra_player" firestore:"need_extra_player"`
 	Fee             string    `json:"fee,omitempty" firestore:"fee,omitempty"`
 	About           string    `json:"about,omitempty" firestore:"about,omitempty"`
