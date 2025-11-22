@@ -99,6 +99,57 @@ func (r *postRepository) GetAllPosts(ctx context.Context, searchKey, memberIn, m
 		posts = filtered
 	}
 
+	now := time.Now().Local()
+	var futurePosts []*model.GamePost
+
+	cleanSpaces := func(s string) string {
+		s = strings.TrimSpace(s)
+		s = strings.ReplaceAll(s, "\u202F", " ") 
+		s = strings.ReplaceAll(s, "\u00A0", " ") 
+		s = strings.ReplaceAll(s, "\t", " ")     
+		s = strings.ReplaceAll(s, "  ", " ")   
+		return strings.TrimSpace(s)
+	}
+
+	for _, p := range posts {
+
+		dateStr := cleanSpaces(p.Date)
+		dateParsed, err := time.Parse("02-01-2006", dateStr)
+		if err != nil {
+			continue
+		}
+
+		timing := cleanSpaces(p.Timing)
+		timing = strings.ToUpper(timing)
+		timeParts := strings.Split(timing, "-")
+		if len(timeParts) != 2 {
+			continue
+		}
+
+		startTimeStr := strings.TrimSpace(timeParts[0]) 
+
+		startTimeParsed, err := time.Parse("3:04 PM", startTimeStr)
+		if err != nil {
+			continue
+		}
+
+		matchStart := time.Date(
+			dateParsed.Year(),
+			dateParsed.Month(),
+			dateParsed.Day(),
+			startTimeParsed.Hour(),
+			startTimeParsed.Minute(),
+			0, 0,
+			time.Local,
+		)
+
+		if matchStart.After(now) {
+			futurePosts = append(futurePosts, p)
+		}
+	}
+
+	posts = futurePosts
+
 	if searchKey == "" {
 		return posts, nil
 	}

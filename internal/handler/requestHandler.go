@@ -21,8 +21,8 @@ func (h *RequestHandler) UpdateRequest(ctx context.Context, id string, updateDat
 	return h.repo.UpdateRequest(ctx, id, updateData)
 }
 
-func (h *RequestHandler) HandleGetAllRequests(ctx context.Context, senderID, receiverID string, includeUserData bool) ([]*model.Request, error) {
-	return h.repo.GetAllRequests(ctx, senderID, receiverID, includeUserData)
+func (h *RequestHandler) HandleGetAllRequests(ctx context.Context, senderID, receiverID string, includeUserData bool, status string) ([]*model.Request, error) {
+	return h.repo.GetAllRequests(ctx, senderID, receiverID, includeUserData, status)
 }
 func (h *RequestHandler) HandleGetRequestByID(ctx context.Context, id string, includeUserData bool) (*model.Request, error) {
 	return h.repo.GetRequestByID(ctx, id, includeUserData)
