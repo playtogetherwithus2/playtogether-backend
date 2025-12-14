@@ -5,6 +5,7 @@ import "time"
 type GamePost struct {
 	ID              string    `json:"id,omitempty" firestore:"id,omitempty"`
 	Name            string    `json:"name" binding:"required" firestore:"name"`
+	Address         string    `json:"address" binding:"required" firestore:"address"`
 	Venue           string    `json:"venue" binding:"required" firestore:"venue"`
 	PlayersRequired int       `json:"players_required" binding:"required" firestore:"players_required"`
 	Timing          string    `json:"timing" binding:"required" firestore:"timing"`
